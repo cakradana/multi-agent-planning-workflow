@@ -1,0 +1,124 @@
+# docs/workflow.yaml — Single source of truth untuk definisi chain
+workflow:
+  name: frontend-planning
+  version: 1
+  schema_version: 1
+  description: "Pocket frontend planning chain — 9 agents, 10 documents, GitHub Issues output"
+
+  # Git settings
+  git:
+    branch_prefix: planning/chain
+    create_pr: true
+    pr_base: main
+
+  # Retry settings
+  retry:
+    max_retry: 3
+    backoff_seconds: [5, 10, 20]
+
+  # Review gates: agent mana yang wajib human review
+  review_gates: [1, 4, 8, 9]
+
+  # Execution strategy
+  execution_strategy: serial
+
+  # Agent definitions
+  agents:
+    - id: 1
+      name: planning-workflow
+      description: "Rules chain, dependency order, konvensi penamaan, format output"
+      output: docs/01-planning-workflow.md
+      depends_on: []
+
+    - id: 2
+      name: prd-analysis
+      description: "Ekstraksi entity, business rules, user stories, edge cases dari PRD"
+      output: docs/02-prd-analysis.md
+      depends_on: [1]
+
+    - id: 3
+      name: frontend-requirement-mapping
+      description: "FR → frontend concern"
+      output: docs/03-frontend-requirement-mapping.md
+      depends_on: [2]
+
+    - id: 4
+      name: screen-route-mapping
+      description: "Layar PRD → Next.js App Router routes"
+      output: docs/04-screen-route-mapping.md
+      depends_on: [2, 3]
+
+    - id: 5
+      name: state-data-flow-plan
+      description: "Zustand stores, React Query keys & hooks, data flow"
+      output: docs/05-state-data-flow-plan.md
+      depends_on: [4]
+
+    - id: 6
+      name: component-and-ui-plan
+      description: "Component tree, shared vs page-specific, shadcn/ui picks"
+      output: docs/06-component-and-ui-plan.md
+      depends_on: [3, 4]
+
+    - id: 7
+      name: api-integration-plan
+      description: "MSW handler definitions, request/response types"
+      output: docs/07-api-integration-plan.md
+      depends_on: [5, 6]
+
+    - id: 8
+      name: validation-and-edge-case-plan
+      description: "Zod schemas, form rules, error boundary, state handling"
+      output: docs/08-validation-and-edge-case-plan.md
+      depends_on: [2, 5, 6, 7]
+
+    - id: 9
+      name: atomic-task-breakdown
+      description: "Task atomik (LLM). RTM + push ke GitHub Issues dihandle script."
+      output:
+        - docs/09-atomic-task-breakdown.md
+      depends_on: [8]
+      requires_validation: true
+
+  # Post-agent scripts (deterministic, nol token cost)
+  scripts:
+    validate:
+      script: scripts/validate-chain.sh
+      output: docs/validation-report.md
+    rtm:
+      script: scripts/generate-rtm.sh
+      input: docs/0?-*.md
+      output: docs/traceability-matrix.md
+    push:
+      script: scripts/push-issues.sh
+      input: docs/09-atomic-task-breakdown.md
+      output: docs/.issue-map.json
+
+  # Cross-document validation rules (dibaca scripts/validate-chain.sh)
+  validation:
+    output: docs/validation-report.md
+    rules:
+      - name: route-vs-screen
+        description: "Setiap screen di doc-04 harus punya route di doc-06"
+        check: doc04.routes[].screen_name IN doc06.component_tree[].page
+        severity: BLOCKER
+      - name: api-vs-state
+        description: "Setiap endpoint di doc-07 harus ada query hook di doc-05"
+        check: doc07.endpoints[] HAS query_hook IN doc05.query_hooks[]
+        severity: BLOCKER
+      - name: entity-vs-schema
+        description: "Setiap entity di doc-02 harus ada type/schema di doc-07/08"
+        check: doc02.entities[] HAS type IN doc07.types[] OR schema IN doc08.schemas[]
+        severity: BLOCKER
+      - name: business-rule-vs-validation
+        description: "Setiap BR harus ada Zod rule/error handling"
+        check: doc02.business_rules[] HAS validation IN doc08
+        severity: WARNING
+      - name: user-story-vs-task
+        description: "Tidak ada US yang tidak tercakup task"
+        check: doc02.user_stories[] COVERED_BY doc09.tasks[]
+        severity: WARNING
+      - name: edge-case-vs-handling
+        description: "Setiap edge case harus punya penanganan konkret"
+        check: doc02.edge_cases[] HAS handling IN doc08.state_handling[]
+        severity: INFO

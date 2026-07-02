@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:docs/*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f \"$CLAUDE_PROJECT_DIR/docs/.chain-lock\" ]; then echo 'BLOCK: Chain lock exists. Use /chain-run to continue the chain.'; exit 1; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_TOOL_INPUT_FILE_PATH\" in */docs/0[1-9]-*.md) git -C \"$CLAUDE_PROJECT_DIR\" add \"$CLAUDE_TOOL_INPUT_FILE_PATH\" && git -C \"$CLAUDE_PROJECT_DIR\" commit -m \"docs(agent): $(basename \"$CLAUDE_TOOL_INPUT_FILE_PATH\")\" 2>/dev/null || true ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
