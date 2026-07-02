@@ -21,9 +21,6 @@ git add PRD.md && git commit -m "add PRD"
 # 2. Lanjut dari state terakhir (resume)
 /chain-run --continue
 
-# 3. Dry-run (tanpa push ke GitHub)
-/chain-run --dry-run
-
 # 4. Reset & mulai dari Agent 1
 /chain-run --restart
 
@@ -117,7 +114,7 @@ Agent 9 (atomic-task) ────────→ docs/09-atomic-task-breakdown.
   ↓                              [Review Gate]
 generate-rtm.sh ───────────────→ docs/traceability-matrix.md
   ↓
-Review Gate (dry-run preview)
+Review Gate (preview issues)
   ↓
 push-issues.sh ────────────────→ GitHub Issues + Project
   ↓
@@ -170,7 +167,7 @@ bash scripts/generate-rtm.sh
 
 ```bash
 bash scripts/push-issues.sh              # Push beneran
-bash scripts/push-issues.sh --dry-run    # Preview tanpa push
+bash scripts/push-issues.sh --dry-run    # Preview task list tanpa push
 ```
 
 ## Environment Variables
@@ -208,7 +205,7 @@ Setelah Agent 9 selesai, `push-issues.sh` membuat GitHub Issues dengan:
 - **Assignee** — `@cakradana` (via `--add-assignee @me`)
 - **Idempotent** — `.issue-map.json` sebagai checkpoint; re-run hanya proses task baru
 
-Preview dulu dengan `--dry-run` sebelum push.
+Preview dulu dengan `push-issues.sh --dry-run` sebelum push.
 
 ### Hasil Chain Terakhir
 

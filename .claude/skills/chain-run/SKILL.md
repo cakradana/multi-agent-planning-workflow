@@ -16,7 +16,6 @@ Jalankan multi-agent chain planning workflow berdasarkan `docs/workflow.yaml`.
 /chain-run --restart        # Reset state, hapus semua output, mulai dari Agent 1
 /chain-run --continue       # Resume dari agent terakhir yang status != "complete"
 /chain-run --force          # Lanjutkan meskipun staleness terdeteksi
-/chain-run --dry-run        # Jalankan tanpa push ke GitHub (Agent 9 mode dry-run)
 ```
 
 ## Flow
@@ -116,7 +115,7 @@ Setelah Agent 8 complete:
 
 Setelah Agent 9 complete:
   → scripts/generate-rtm.sh → docs/traceability-matrix.md
-  → Review gate final: task summary + RTM + dry-run preview (scripts/push-issues.sh --dry-run)
+  → Review gate final: task summary + RTM + preview (scripts/push-issues.sh --dry-run) - task list + labels + dependencies ditampilkan
     - Issue BELUM dipush — user lihat preview dulu sebelum approve
   → Jika approved: scripts/push-issues.sh → GitHub Issues + Project #1
 ```
