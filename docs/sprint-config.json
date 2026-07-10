@@ -1,0 +1,24 @@
+{
+  "project": {
+    "number": 1,
+    "owner": "cakradana"
+  },
+  "field": {
+    "name": "Sprint",
+    "id": "PVTIF_lAHOAz2Al84BcQZHzhXoDTk"
+  },
+  "sprints": [
+    {
+      "name": "Sprint 1",
+      "phases": [1, 2, 3],
+      "startDate": "2026-07-13",
+      "duration": 14
+    },
+    {
+      "name": "Sprint 2",
+      "phases": [4, 5],
+      "startDate": "2026-07-27",
+      "duration": 14
+    }
+  ]
+}

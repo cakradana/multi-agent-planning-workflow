@@ -93,6 +93,10 @@ workflow:
       script: scripts/push-issues.sh
       input: docs/09-atomic-task-breakdown.md
       output: docs/.issue-map.json
+    sprint-assign:
+      script: scripts/assign-sprints.sh
+      input: docs/sprint-config.json
+      description: "Assign project items to sprint iterations (semi-auto — run with --confirm)"
 
   # Cross-document validation rules (dibaca scripts/validate-chain.sh)
   validation:
